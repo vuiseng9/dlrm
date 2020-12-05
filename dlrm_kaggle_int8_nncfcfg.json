@@ -1,0 +1,49 @@
+{
+    "model": "dlrm",
+    // "pretrained": true,
+
+    "input_info": [
+        {
+            "sample_size": [1, 13],
+        },
+        {
+            "sample_size": [26, 1],
+            "type": "long",
+        },
+        {
+            "sample_size": [26, 1],
+            "type": "long",
+        }
+    ],
+    // "num_classes": 1000,
+    // "batch_size": 85,
+    // "epochs": 1,
+    // "multiprocessing_distributed": true,
+    // "optimizer": {
+    //     "type": "Adam",
+    //     "base_lr": 1e-5
+    // },
+    "target_device": "NONE",
+    "compression": {
+        "algorithm": "quantization",
+        "activations": {
+            "mode": "asymmetric",
+            "bits": 8,
+            "per_channel": false
+        },
+        "weights": {
+            "mode": "asymmetric",
+            "bits": 8,
+            "per_channel": false
+        },
+        "initializer": {
+            "range": {
+                "type": "mean_min_max",
+                "num_init_steps": 10
+            },
+            // "batchnorm_adaptation": {
+            //     "num_bn_adaptation_steps": 30
+            // },
+        }
+    }
+}

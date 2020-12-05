@@ -93,6 +93,16 @@ import sklearn.metrics
 
 from torch.optim.lr_scheduler import _LRScheduler
 
+import os.path as osp
+from pathlib import Path
+from shutil import copyfile
+from nncf import NNCFConfig, create_compressed_model
+from nncf.initialization import register_default_init_args
+from examples.common.utils import configure_logging, configure_paths, create_code_snapshot
+from examples.common.sample_config import SampleConfig, create_sample_config
+from examples.common.example_logger import logger
+from nncf.initialization import InitializingDataLoader
+
 exc = getattr(builtins, "IOError", "FileNotFoundError")
 
 class LRPolicyScheduler(_LRScheduler):
@@ -596,6 +606,15 @@ if __name__ == "__main__":
     parser.add_argument("--lr-num-warmup-steps", type=int, default=0)
     parser.add_argument("--lr-decay-start-step", type=int, default=0)
     parser.add_argument("--lr-num-decay-steps", type=int, default=0)
+
+    # NNCF
+    parser.add_argument('--nncf_config', type=str, help='path to NNCF config .json file to be used for compressed model')
+    parser.add_argument("--log-dir", type=str, default='runs',
+        help="The directory where models and TensorboardX summaries"
+             " are saved. Default: runs")
+
+    print_fn = print
+
     args = parser.parse_args()
 
     if args.mlperf_logging:
@@ -1060,6 +1079,26 @@ if __name__ == "__main__":
     #                 # .format(time_wrap(use_gpu) - accum_time_begin))
     #                 total_iter = 0
     #                 total_samp = 0
+
+    if args.nncf_config is not None:
+        args.config = args.nncf_config
+        config = create_sample_config(args, None)
+        config.checkpoint_save_dir = config.log_dir
+        configure_paths(config)
+        copyfile(args.config, osp.join(config.log_dir, 'config.json'))
+        source_root = Path(__file__).absolute().parents[0]  # nncf root
+        create_code_snapshot(source_root, osp.join(config.log_dir, "snapshot.tar.gz"))
+        configure_logging(logger, config)
+        print_fn = logger.info
+
+        class DLRMInitializingDataLoader(InitializingDataLoader):
+            def get_inputs(self, dataloader_output):
+                return (dataloader_output[0:3]), dict()
+        
+        initializing_train_ld = DLRMInitializingDataLoader(train_ld)
+
+        config.nncf_config = register_default_init_args(config.nncf_config, initializing_train_ld, device=device)
+        compression_ctrl, dlrm = create_compressed_model(dlrm, config.nncf_config)
 
     # testing
     # if should_test and not args.inference_only:
