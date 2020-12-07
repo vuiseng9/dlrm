@@ -23,7 +23,7 @@
     //     "type": "Adam",
     //     "base_lr": 1e-5
     // },
-    "target_device": "NONE",
+    "target_device": "TRIAL",
     "compression": {
         "algorithm": "quantization",
         "activations": {
@@ -33,13 +33,13 @@
         },
         "weights": {
             "mode": "asymmetric",
-            "bits": 8,
+            "bits": 4,
             "per_channel": false
         },
         "initializer": {
             "range": {
                 "type": "mean_min_max",
-                "num_init_steps": 10
+                // "num_init_steps": 10
             },
             // "batchnorm_adaptation": {
             //     "num_bn_adaptation_steps": 30

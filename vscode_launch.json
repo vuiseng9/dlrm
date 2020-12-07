@@ -9,9 +9,9 @@
             "name": "[DLRM] dlrm_s_criteo_kaggle.sh", // Replicate DLRM with Kaggle Criteo Dataset as outlined in paper
             "type": "python",
             "request": "launch",
-            // "env": {
-            //     "CUDA_VISIBLE_DEVICES": "0,1,2,3",
-            // },
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0",
+            },
             "cwd": "${workspaceFolder}/dlrm",
             "program": "dlrm_s_pytorch.py",
             "args": [
@@ -40,7 +40,7 @@
             "type": "python",
             "request": "launch",
             "env": {
-                "CUDA_VISIBLE_DEVICES": "2",
+                "CUDA_VISIBLE_DEVICES": "0",
             },
             "cwd": "${workspaceFolder}/dlrm",
             "program": "dlrm_s_pytorch_nncf.py",
@@ -73,7 +73,7 @@
             "type": "python",
             "request": "launch",
             "env": {
-                "CUDA_VISIBLE_DEVICES": "2",
+                "CUDA_VISIBLE_DEVICES": "0",
             },
             "cwd": "${workspaceFolder}/dlrm",
             "program": "dlrm_s_pytorch_nncf.py",

@@ -2,7 +2,7 @@ future
 numpy
 onnx
 pydot
-torch
-torchviz
+#torch
+#torchviz
 scikit-learn
 tqdm
