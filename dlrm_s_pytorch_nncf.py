@@ -859,7 +859,7 @@ if __name__ == "__main__":
             torch.cuda.synchronize()
         return time.time()
 
-    def dlrm_wrap(X, lS_o, lS_i, use_gpu, device):
+    def dlrm_wrap(dlrm, X, lS_o, lS_i, use_gpu, device):
         if use_gpu:  # .cuda()
             # lS_i can be either a list of tensors or a stacked tensor.
             # Handle each case below:
@@ -1080,30 +1080,10 @@ if __name__ == "__main__":
     #                 total_iter = 0
     #                 total_samp = 0
 
-    if args.nncf_config is not None:
-        args.config = args.nncf_config
-        config = create_sample_config(args, None)
-        config.checkpoint_save_dir = config.log_dir
-        configure_paths(config)
-        copyfile(args.config, osp.join(config.log_dir, 'config.json'))
-        source_root = Path(__file__).absolute().parents[0]  # nncf root
-        create_code_snapshot(source_root, osp.join(config.log_dir, "snapshot.tar.gz"))
-        configure_logging(logger, config)
-        print_fn = logger.info
-
-        class DLRMInitializingDataLoader(InitializingDataLoader):
-            def get_inputs(self, dataloader_output):
-                return (dataloader_output[0:3]), dict()
-        
-        initializing_train_ld = DLRMInitializingDataLoader(train_ld)
-
-        config.nncf_config = register_default_init_args(config.nncf_config, initializing_train_ld)
-        compression_ctrl, dlrm = create_compressed_model(dlrm, config.nncf_config)
-
     # testing
     # if should_test and not args.inference_only:
     # =========================================================================================================================
-    if True:
+    def test_dlrm(model, test_ld):
         # don't measure training iter time in a test iteration
         if args.mlperf_logging:
             previous_iteration_time = None
@@ -1128,7 +1108,7 @@ if __name__ == "__main__":
 
             # forward pass
             Z_test = dlrm_wrap(
-                X_test, lS_o_test, lS_i_test, use_gpu, device
+                model, X_test, lS_o_test, lS_i_test, use_gpu, device
             )
             if args.mlperf_logging:
                 S_test = Z_test.detach().cpu().numpy()  # numpy array
@@ -1213,7 +1193,8 @@ if __name__ == "__main__":
         else:
             gA_test = test_accu / test_samp
             gL_test = test_loss / test_samp
-
+        
+        best_gA_test = gA_test # bypass error "local variable 'best_gA_test' referenced before assignment"
         is_best = gA_test > best_gA_test
         if is_best:
             best_gA_test = gA_test
@@ -1291,7 +1272,39 @@ if __name__ == "__main__":
             # break
 
             # k += 1  # nepochs
+        return gA_test
 
+    if args.nncf_config is not None:
+        args.config = args.nncf_config
+        config = create_sample_config(args, None)
+        config.checkpoint_save_dir = config.log_dir
+        configure_paths(config)
+        copyfile(args.config, osp.join(config.log_dir, 'config.json'))
+        source_root = Path(__file__).absolute().parents[0]  # nncf root
+        create_code_snapshot(source_root, osp.join(config.log_dir, "snapshot.tar.gz"))
+        configure_logging(logger, config)
+        print_fn = logger.info
+
+        class DLRMInitializingDataLoader(InitializingDataLoader):
+            def get_inputs(self, dataloader_output):
+                return (dataloader_output[0:3]), dict()
+
+            def __len__(self):
+                return len(self.data_loader)
+
+        initializing_train_ld = DLRMInitializingDataLoader(train_ld)
+        initializing_test_ld = DLRMInitializingDataLoader(test_ld)
+
+        def autoq_eval_fn(model, eval_loader):
+            return test_dlrm(model, eval_loader)
+
+        config.nncf_config = register_default_init_args(config.nncf_config, initializing_train_ld)
+
+        compression_ctrl, dlrm = create_compressed_model(dlrm, config.nncf_config)
+
+    test_dlrm(dlrm, test_ld)
+
+    # mostly irrelevant for mixed-precision search
     # profiling
     if args.enable_profiling:
         with open("dlrm_s_pytorch.prof", "w") as prof_f:
