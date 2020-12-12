@@ -1097,7 +1097,7 @@ if __name__ == "__main__":
         
         initializing_train_ld = DLRMInitializingDataLoader(train_ld)
 
-        config.nncf_config = register_default_init_args(config.nncf_config, initializing_train_ld, device=device)
+        config.nncf_config = register_default_init_args(config.nncf_config, initializing_train_ld)
         compression_ctrl, dlrm = create_compressed_model(dlrm, config.nncf_config)
 
     # testing

@@ -34,7 +34,7 @@
         "weights": {
             "mode": "asymmetric",
             "bits": 8,
-            "per_channel": false
+            "per_channel": true
         },
         "initializer": {
             "range": {
