@@ -1,0 +1,72 @@
+{
+    "model": "dlrm",
+    // "pretrained": true,
+
+    "input_info": [
+        {
+            "sample_size": [1, 13],
+        },
+        {
+            "sample_size": [26, 1],
+            "type": "long",
+        },
+        {
+            "sample_size": [26, 1],
+            "type": "long",
+        }
+    ],
+    // "num_classes": 1000,
+    // "batch_size": 85,
+    // "epochs": 1,
+    // "multiprocessing_distributed": true,
+    // "optimizer": {
+    //     "type": "Adam",
+    //     "base_lr": 1e-5
+    // },
+    "target_device": "NONE",
+    "compression": {
+        "algorithm": "quantization",
+        "activations": {
+            "mode": "asymmetric",
+            "bits": 8,
+            "per_channel": false
+        },
+        "weights": {
+            "mode": "asymmetric",
+            "bits": 8,
+            "per_channel": true
+        },
+        "initializer": {
+            "range": {
+                "type": "mean_min_max",
+                "num_init_steps": 10
+            },
+            // "batchnorm_adaptation": {
+            //     "num_bn_adaptation_steps": 30
+            // },
+        }
+    },
+    "auto_quantization":{
+        "seed": 528,
+        "compress_ratio": 0.15,
+        "min_bit": 2,
+        "max_bit": 8,
+        "hidden1": 300,
+        "hidden2": 300,
+        "init_w": 0.003,
+        "lr_c": 0.001,
+        "lr_a": 0.0001,
+        "rmsize": 2048,
+        "window_length": 1,
+        "bsize": 64,
+        "tau": 0.01,
+        "discount": 1.0,
+        "epsilon": 50000,
+        "init_delta": 0.5,
+        "delta_decay": 0.995,
+        "warmup": 20,
+        "n_update": 1,
+        "train_episode": 600,
+        "finetune": false
+    }
+}
