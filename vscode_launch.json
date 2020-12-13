@@ -139,5 +139,27 @@
             ],
             "console": "integratedTerminal"
         },
+        {
+            "name": "[QAAS] DLRM",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/autox/autox/server/",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0",
+                "PYTHONPATH": "${workspaceFolder}/autox:${workspaceFolder}/dlrm",
+                "qenv_name": "dlrm",
+                "config": "${workspaceFolder}/autox/autox/server/qaas/cfg/dlrm_kaggle_autoq_qaas.json",                
+                "data": "${workspaceFolder}/dlrm/input",
+                "weight": "${workspaceFolder}/dlrm/ckpt/criteo_kaggle.pt",
+            },
+            "program": "qaas/manage.py",
+            "args": [
+                "run",
+                "--no-reload",
+                "--host", "0.0.0.0",
+                "--port", "5005"
+            ],
+            "console": "integratedTerminal"
+        },
     ]
 }

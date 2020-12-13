@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export PYTHONPATH=/path/to/autox
+export PYTHONPATH=/workspace/autox
 
 CUDA_VISIBLE_DEVICES=0 python dlrm_s_pytorch_auto_nncf.py \
 --arch-sparse-feature-size=16 \
